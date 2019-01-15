@@ -17,7 +17,7 @@ source:
     git_tag: v{{ version }}  # [win]
 
 build:
-  number: 0
+  number: 1000
   script:
     - pushd {{ pkg_src }}
     - go install -v -ldflags "-X main.version={{ version }}" .
