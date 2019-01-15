@@ -1,0 +1,64 @@
+# This file was generated automatically from conda-smithy. To update this configuration,
+# update the conda-forge.yml and/or the recipe/meta.yaml.
+
+language: generic
+
+os: osx
+osx_image: xcode9.4
+
+
+env:
+  matrix:
+    - CONFIG=osx_
+
+  global:
+    # The BINSTAR_TOKEN secure variable. This is defined canonically in conda-forge.yml.
+    - secure: "MYlTPuhz/JnhVNDG4KnEQtL/Dt8GkwpmSokED9lwIHw9lk4feqsRZgH9IlVoOjOhdu7oWEZr66Mm57lgAeVumea0TUwoCB6TMDeic8+VmKja5TFsO7FYJ52g37mjBsNTUbGjmnBrMN35W3LBaZF/3ny6pGuZ0btM0MgFtYBqtgxiPjskUK1qsXrAhsaw/Ye51ywd17GGxAD9YIG/i/XhePQ3jMG7Z1Igiour4WF49WoAUINwgF/VI2ZC/a98WAsmtenSGaol3WV9ywjiyi+erKOK8D6kEoL0hzhqbA3mYGckt3I5fnQwz7ZRf2xf0HAMBoMlwCS75RArGeyZPJ1MWQN8iWWpFrf3TJsRXMRZ2vp8EBp/DXVooaYsCcUBlwKGv2m0qHOyfMsp2Gif6sd7VA12iPgiwk7gN/07K60ifFqPrSjrBV5GAWWRqd9Pm9Mzkyvg0YB5CRpQDSKKjUmYyGYSU5x3TxxoCj9k82s5a1Vy/d1JW1BtTk304C/bbXLa0tEu54YksUzLKHaXaCXSGh0/hB1cXqSp0TWxWVg5xHD6W36dhBbf2QAFScoWTwjPGGvo+aPU6h/uRLUvq8rZHNtAmVGczmahEb8fLBwMHM+psm4irK3xEKxao0y67NUMvTigHFHXYkmMszFy96IR9xNH8c7/sgJG+4Sjfr0kpNE="
+
+
+before_install:
+    # Fast finish the PR.
+    - |
+      (curl https://raw.githubusercontent.com/conda-forge/conda-forge-ci-setup-feedstock/branch2.0/recipe/conda_forge_ci_setup/ff_ci_pr_build.py | \
+          python - -v --ci "travis" "${TRAVIS_REPO_SLUG}" "${TRAVIS_BUILD_NUMBER}" "${TRAVIS_PULL_REQUEST}") || exit 1
+
+    # Remove homebrew.
+    - |
+      echo ""
+      echo "Removing homebrew from Travis CI to avoid conflicts."
+      curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall > ~/uninstall_homebrew
+      chmod +x ~/uninstall_homebrew
+      ~/uninstall_homebrew -fq
+      rm ~/uninstall_homebrew
+
+
+install:
+    # Install Miniconda.
+    - |
+      echo ""
+      echo "Installing a fresh version of Miniconda."
+      MINICONDA_URL="https://repo.continuum.io/miniconda"
+      MINICONDA_FILE="Miniconda3-latest-MacOSX-x86_64.sh"
+      curl -L -O "${MINICONDA_URL}/${MINICONDA_FILE}"
+      bash $MINICONDA_FILE -b
+
+    # Configure conda.
+    - |
+      echo ""
+      echo "Configuring conda."
+      source /Users/travis/miniconda3/bin/activate root
+
+      conda install -n root -c conda-forge --quiet --yes conda-forge-ci-setup=2
+      setup_conda_rc ./ ./recipe ./.ci_support/${CONFIG}.yaml
+
+      source run_conda_forge_build_setup
+
+    # compiler cleanup
+    - |
+      mangle_compiler ./ ./recipe ./.ci_support/${CONFIG}.yaml
+
+script:
+  # generate the build number clobber
+  - make_build_number ./ ./recipe ./.ci_support/${CONFIG}.yaml
+  - conda build ./recipe -m ./.ci_support/${CONFIG}.yaml --clobber-file ./.ci_support/clobber_${CONFIG}.yaml
+  - upload_package ./ ./recipe ./.ci_support/${CONFIG}.yaml
