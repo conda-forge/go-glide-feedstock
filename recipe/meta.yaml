@@ -1,5 +1,5 @@
 {% set goname = "github.com/Masterminds/glide" %}
-{% set version = "0.13.2" %}
+{% set version = "0.13.3" %}
 
 {% set name = goname.split('/')[-1] %}
 {% set pkg_src = ('src/'+goname).replace("/", "\\" if win else "/") %}
@@ -11,13 +11,13 @@ package:
 source:
   - folder: {{ pkg_src }}
     url: https://{{ goname }}/archive/v{{ version }}.tar.gz  # [unix]
-    sha256: 0886851af2437b161d47b279a32bef426577e7bec3f5acdadebe34549aae8270  # [unix]
+    sha256: 817dad2f25303d835789c889bf2fac5e141ad2442b9f75da7b164650f0de3fee  # [unix]
 
     git_url: https://{{ goname }}  # [win]
     git_tag: v{{ version }}  # [win]
 
 build:
-  number: 1000
+  number: 0
   script:
     - pushd {{ pkg_src }}
     - go install -v -ldflags "-X main.version={{ version }}" .
